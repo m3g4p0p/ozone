@@ -10,10 +10,6 @@ import (
 
 var errStop = errors.New("stop")
 
-type Chatter interface {
-	Chat(ctx context.Context, req *api.ChatRequest, fn api.ChatResponseFunc) error
-}
-
 type RunOptions struct {
 	Client  Chatter
 	History []api.Message

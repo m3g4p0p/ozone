@@ -2,7 +2,10 @@ module m3g4p0p/ozone
 
 go 1.27.0
 
-require github.com/ollama/ollama v0.34.2
+require (
+	github.com/google/jsonschema-go v0.4.3
+	github.com/ollama/ollama v0.34.2
+)
 
 require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
