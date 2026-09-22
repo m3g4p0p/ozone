@@ -17,6 +17,31 @@ type Toolset interface {
 	Call(ctx context.Context, tc api.ToolCall) (string, error)
 }
 
+type Toolsets []Toolset
+
+func (t Toolsets) Tools(ctx context.Context) (api.Tools, error) {
+	var tools api.Tools
+	for _, t := range t {
+		ts, err := t.Tools(ctx)
+		if err != nil {
+			return nil, err
+		}
+		ts = append(ts, ts...)
+	}
+	return tools, nil
+}
+
+func (t Toolsets) Call(ctx context.Context, tc api.ToolCall) (string, error) {
+	for _, t := range t {
+		res, err := t.Call(ctx, tc)
+		if errors.Is(err, ErrNotHandled) {
+			continue
+		}
+		return res, err
+	}
+	return "", ErrNotHandled
+}
+
 type FunctionTool struct {
 	Definition api.Tool
 	Handler    func(ctx context.Context, tc api.ToolCall) (string, error)
@@ -43,7 +68,7 @@ func NewTool[In, Out any](
 		return nil, err
 	}
 	var params api.ToolFunctionParameters
-	if err := convert(schema, &params); err != nil {
+	if err := convert(resolved, &params); err != nil {
 		return nil, err
 	}
 	return &FunctionTool{
@@ -79,6 +104,17 @@ func NewTool[In, Out any](
 			return string(res), nil
 		},
 	}, nil
+}
+
+func MustNewTool[In, Out any](
+	name, description string,
+	handler func(ctx context.Context, input In) (Out, error),
+) Toolset {
+	t, err := NewTool(name, description, handler)
+	if err != nil {
+		panic(err)
+	}
+	return t
 }
 
 func convert(src, dest any) error {
