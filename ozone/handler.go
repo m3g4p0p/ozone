@@ -30,7 +30,7 @@ func (m *ToolHandler) Chat(
 			)
 			return nil
 		})
-		if err != nil || msg.ToolCalls == nil {
+		if err != nil || len(msg.ToolCalls) == 0 {
 			return err
 		}
 		for _, tc := range msg.ToolCalls {

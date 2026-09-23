@@ -26,7 +26,7 @@ func (t Toolsets) Tools(ctx context.Context) (api.Tools, error) {
 		if err != nil {
 			return nil, err
 		}
-		ts = append(ts, ts...)
+		tools = append(tools, ts...)
 	}
 	return tools, nil
 }
@@ -39,7 +39,7 @@ func (t Toolsets) Call(ctx context.Context, tc api.ToolCall) (string, error) {
 		}
 		return res, err
 	}
-	return "", ErrNotHandled
+	return "", fmt.Errorf("%w: %s", ErrNotHandled, tc.Function.Name)
 }
 
 type FunctionTool struct {
@@ -68,7 +68,7 @@ func NewTool[In, Out any](
 		return nil, err
 	}
 	var params api.ToolFunctionParameters
-	if err := convert(resolved, &params); err != nil {
+	if err := convert(schema, &params); err != nil {
 		return nil, err
 	}
 	return &FunctionTool{
