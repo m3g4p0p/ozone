@@ -10,6 +10,10 @@ import (
 
 var errStop = errors.New("stop")
 
+type Chatter interface {
+	Chat(ctx context.Context, req *api.ChatRequest, fn api.ChatResponseFunc) error
+}
+
 type RunOptions struct {
 	Client  Chatter
 	History []api.Message
@@ -23,9 +27,10 @@ func (r *RunOptions) resolveClient() (Chatter, error) {
 }
 
 type RunResult struct {
-	ctx    context.Context
 	client Chatter
+	ctx    context.Context
 	req    *api.ChatRequest
+	ts     Toolsets
 }
 
 func (r *RunResult) Stream() iter.Seq2[api.ChatResponse, error] {
@@ -43,9 +48,10 @@ func (r *RunResult) Stream() iter.Seq2[api.ChatResponse, error] {
 }
 
 type Agent struct {
-	Name   string
-	Model  string
-	System string
+	Name     string
+	Model    string
+	System   string
+	Toolsets Toolsets
 }
 
 func (a *Agent) Run(ctx context.Context, input string, options *RunOptions) (*RunResult, error) {
@@ -58,8 +64,14 @@ func (a *Agent) Run(ctx context.Context, input string, options *RunOptions) (*Ru
 		return nil, err
 	}
 
+	tools, err := a.Toolsets.Tools(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	req := &api.ChatRequest{
 		Model: a.Model,
+		Tools: tools,
 	}
 
 	if a.System != "" {
@@ -80,9 +92,12 @@ func (a *Agent) Run(ctx context.Context, input string, options *RunOptions) (*Ru
 	})
 
 	res := &RunResult{
-		client: client,
-		ctx:    ctx,
-		req:    req,
+		client: &ToolHandler{
+			Client:  client,
+			Toolset: a.Toolsets,
+		},
+		ctx: ctx,
+		req: req,
 	}
 
 	return res, nil
