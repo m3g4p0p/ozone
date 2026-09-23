@@ -1,0 +1,41 @@
+package ozone
+
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	"github.com/ollama/ollama/api"
+)
+
+var ErrNotHandled = errors.New("not handled")
+
+type Toolset interface {
+	Tools(ctx context.Context) (api.Tools, error)
+	Call(ctx context.Context, tc api.ToolCall) (string, error)
+}
+
+type Toolsets []Toolset
+
+func (t Toolsets) Tools(ctx context.Context) (api.Tools, error) {
+	var tools api.Tools
+	for _, t := range t {
+		ts, err := t.Tools(ctx)
+		if err != nil {
+			return nil, err
+		}
+		tools = append(tools, ts...)
+	}
+	return tools, nil
+}
+
+func (t Toolsets) Call(ctx context.Context, tc api.ToolCall) (string, error) {
+	for _, t := range t {
+		res, err := t.Call(ctx, tc)
+		if errors.Is(err, ErrNotHandled) {
+			continue
+		}
+		return res, err
+	}
+	return "", fmt.Errorf("%w: %s", ErrNotHandled, tc.Function.Name)
+}
