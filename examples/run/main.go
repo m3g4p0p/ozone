@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -11,6 +12,10 @@ import (
 	"m3g4p0p/ozone/ozone"
 )
 
+type GetWeatherParams struct {
+	Location string `json:"location" jsonschema:"the location to get the weather for"`
+}
+
 func run() error {
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
@@ -19,12 +24,21 @@ func run() error {
 	)
 	defer stop()
 
+	tool := ozone.MustNewTool(
+		"get_weather",
+		"get the weather for the provided location",
+		func(_ context.Context, params GetWeatherParams) (string, error) {
+			return "mostly sunny", nil
+		},
+	)
+
 	agent := &ozone.Agent{
-		Name:  "main",
-		Model: "qwen3.5:2b",
+		Name:     "main",
+		Model:    "qwen3.5:2b",
+		Toolsets: ozone.Toolsets{tool},
 	}
 
-	res, err := agent.Run(ctx, "say hello", nil)
+	res, err := agent.Run(ctx, flag.Arg(0), nil)
 	if err != nil {
 		return err
 	}
@@ -42,6 +56,7 @@ func run() error {
 }
 
 func main() {
+	flag.Parse()
 	if err := run(); err != nil {
 		log.Fatal(err)
 	}
