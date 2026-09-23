@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"iter"
+	"sync/atomic"
 
 	"github.com/ollama/ollama/api"
 )
 
 var errStop = errors.New("stop")
+
+var ErrStarted = errors.New("stream already started")
 
 type Chatter interface {
 	Chat(ctx context.Context, req *api.ChatRequest, fn api.ChatResponseFunc) error
@@ -27,14 +30,19 @@ func (r *RunOptions) resolveClient() (Chatter, error) {
 }
 
 type RunResult struct {
-	client Chatter
-	ctx    context.Context
-	req    *api.ChatRequest
-	ts     Toolsets
+	client  Chatter
+	ctx     context.Context
+	req     *api.ChatRequest
+	started atomic.Bool
 }
 
 func (r *RunResult) Stream() iter.Seq2[api.ChatResponse, error] {
 	return func(yield func(api.ChatResponse, error) bool) {
+		if !r.started.CompareAndSwap(false, true) {
+			yield(api.ChatResponse{}, ErrStarted)
+			return
+		}
+
 		err := r.client.Chat(r.ctx, r.req, func(cr api.ChatResponse) error {
 			if !yield(cr, nil) {
 				return errStop
