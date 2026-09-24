@@ -3,11 +3,24 @@ package ozone
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/ollama/ollama/api"
 )
+
+type llmError struct {
+	message string
+}
+
+func (e *llmError) Error() string {
+	return e.message
+}
+
+func LLMError(message string) error {
+	return &llmError{message: message}
+}
 
 type FunctionTool struct {
 	Definition api.Tool
@@ -51,19 +64,25 @@ func NewTool[In, Out any](
 			if tc.Function.Name != name {
 				return "", ErrNotHandled
 			}
+
 			if err := resolved.Validate(tc.Function.Arguments.ToMap()); err != nil {
 				// Retries simply limited by run level max steps
 				return toolCallError(name, err), nil
 			}
+
 			var input In
 			if err := convert(tc.Function.Arguments, &input); err != nil {
 				return "", err
 			}
+
 			out, err := handler(ctx, input)
 			if err != nil {
-				// Consider distinguishing error types like fatal internal error
-				return toolCallError(name, err), nil
+				if err, ok := errors.AsType[*llmError](err); ok {
+					return toolCallError(name, err), nil
+				}
+				return "", err
 			}
+
 			res, err := json.Marshal(out)
 			if err != nil {
 				return "", err
