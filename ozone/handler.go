@@ -2,23 +2,34 @@ package ozone
 
 import (
 	"context"
+	"errors"
 
 	"github.com/ollama/ollama/api"
 )
 
+const defaultMaxSteps = 10
+
+var ErrMaxStepsExceeded = errors.New("max steps exceeded")
+
 type ToolHandler struct {
 	Toolset
-	Client Chatter
+	Client   Chatter
+	MaxSetps int
 }
 
-func (m *ToolHandler) Chat(
+func (h *ToolHandler) Chat(
 	ctx context.Context,
 	req *api.ChatRequest,
 	fn api.ChatResponseFunc,
 ) error {
-	for {
+	maxSteps := h.MaxSetps
+	if maxSteps == 0 {
+		maxSteps = defaultMaxSteps
+	}
+
+	for range maxSteps {
 		var msg api.Message
-		err := m.Client.Chat(ctx, req, func(cr api.ChatResponse) error {
+		err := h.Client.Chat(ctx, req, func(cr api.ChatResponse) error {
 			if err := fn(cr); err != nil {
 				return err
 			}
@@ -40,7 +51,7 @@ func (m *ToolHandler) Chat(
 		}
 
 		for _, tc := range msg.ToolCalls {
-			res, err := m.Call(ctx, tc)
+			res, err := h.Call(ctx, tc)
 			if err != nil {
 				return err
 			}
@@ -51,4 +62,6 @@ func (m *ToolHandler) Chat(
 			})
 		}
 	}
+
+	return ErrMaxStepsExceeded
 }
