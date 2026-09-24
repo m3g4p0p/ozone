@@ -64,7 +64,7 @@ func NewTool[In, Out any](
 		},
 		Handler: func(ctx context.Context, tc api.ToolCall) (string, error) {
 			if tc.Function.Name != name {
-				return "", ErrNotHandled
+				return "", ozone.ErrNotHandled
 			}
 
 			if err := resolved.Validate(tc.Function.Arguments.ToMap()); err != nil {

@@ -3,17 +3,21 @@ package ozone
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/ollama/ollama/api"
 )
 
 const defaultMaxSteps = 10
 
-var ErrMaxStepsExceeded = errors.New("max steps exceeded")
+var (
+	ErrNotHandled       = errors.New("not handled")
+	ErrMaxStepsExceeded = errors.New("max steps exceeded")
+)
 
 type ToolHandler struct {
-	Toolset
 	Client   Chatter
+	Toolset  Toolset
 	MaxSetps int
 }
 
@@ -64,4 +68,12 @@ func (h *ToolHandler) Chat(
 	}
 
 	return ErrMaxStepsExceeded
+}
+
+func (h *ToolHandler) Call(ctx context.Context, tc api.ToolCall) (string, error) {
+	res, err := h.Call(ctx, tc)
+	if errors.Is(err, ErrNotHandled) {
+		return fmt.Sprintf("unkown tool: %s", tc.Function.Name), nil
+	}
+	return res, err
 }
