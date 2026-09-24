@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"m3g4p0p/ozone/ozone"
+	"m3g4p0p/ozone/ozone/tools"
 )
 
 type GetWeatherParams struct {
@@ -24,7 +25,7 @@ func run() error {
 	)
 	defer stop()
 
-	tool := ozone.MustNewTool(
+	tool := tools.MustNewTool(
 		"get_weather",
 		"get the weather for the provided location",
 		func(_ context.Context, params GetWeatherParams) (string, error) {
@@ -33,9 +34,9 @@ func run() error {
 	)
 
 	agent := &ozone.Agent{
-		Name:     "main",
-		Model:    "qwen3.5:2b",
-		Toolsets: ozone.Toolsets{tool},
+		Name:    "main",
+		Model:   "qwen3.5:2b",
+		Toolset: tools.Toolsets{tool},
 	}
 
 	res, err := agent.Run(ctx, flag.Arg(0), nil)

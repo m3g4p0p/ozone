@@ -1,10 +1,12 @@
-package ozone
+package tools
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+
+	"m3g4p0p/ozone/ozone"
 
 	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/ollama/ollama/api"
@@ -38,7 +40,7 @@ func (t *FunctionTool) Call(ctx context.Context, tc api.ToolCall) (string, error
 func NewTool[In, Out any](
 	name, description string,
 	handler func(ctx context.Context, input In) (Out, error),
-) (Toolset, error) {
+) (ozone.Toolset, error) {
 	schema, err := jsonschema.For[In](nil)
 	if err != nil {
 		return nil, err
@@ -95,7 +97,7 @@ func NewTool[In, Out any](
 func MustNewTool[In, Out any](
 	name, description string,
 	handler func(ctx context.Context, input In) (Out, error),
-) Toolset {
+) ozone.Toolset {
 	t, err := NewTool(name, description, handler)
 	if err != nil {
 		panic(err)

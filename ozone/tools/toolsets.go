@@ -1,21 +1,18 @@
-package ozone
+package tools
 
 import (
 	"context"
 	"errors"
 	"fmt"
 
+	"m3g4p0p/ozone/ozone"
+
 	"github.com/ollama/ollama/api"
 )
 
 var ErrNotHandled = errors.New("not handled")
 
-type Toolset interface {
-	Tools(ctx context.Context) (api.Tools, error)
-	Call(ctx context.Context, tc api.ToolCall) (string, error)
-}
-
-type Toolsets []Toolset
+type Toolsets []ozone.Toolset
 
 func (t Toolsets) Tools(ctx context.Context) (api.Tools, error) {
 	var tools api.Tools

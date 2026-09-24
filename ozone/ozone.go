@@ -17,6 +17,11 @@ type Chatter interface {
 	Chat(ctx context.Context, req *api.ChatRequest, fn api.ChatResponseFunc) error
 }
 
+type Toolset interface {
+	Tools(ctx context.Context) (api.Tools, error)
+	Call(ctx context.Context, tc api.ToolCall) (string, error)
+}
+
 type RunOptions struct {
 	Client  Chatter
 	History []api.Message
@@ -56,10 +61,10 @@ func (r *RunResult) Stream() iter.Seq2[api.ChatResponse, error] {
 }
 
 type Agent struct {
-	Name     string
-	Model    string
-	System   string
-	Toolsets Toolsets
+	Name    string
+	Model   string
+	System  string
+	Toolset Toolset
 }
 
 func (a *Agent) Run(ctx context.Context, input string, options *RunOptions) (*RunResult, error) {
@@ -72,14 +77,8 @@ func (a *Agent) Run(ctx context.Context, input string, options *RunOptions) (*Ru
 		return nil, err
 	}
 
-	tools, err := a.Toolsets.Tools(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	req := &api.ChatRequest{
 		Model: a.Model,
-		Tools: tools,
 	}
 
 	if a.System != "" {
@@ -87,6 +86,14 @@ func (a *Agent) Run(ctx context.Context, input string, options *RunOptions) (*Ru
 			Role:    "system",
 			Content: a.System,
 		})
+	}
+
+	if a.Toolset != nil {
+		tools, err := a.Toolset.Tools(ctx)
+		if err != nil {
+			return nil, err
+		}
+		req.Tools = tools
 	}
 
 	req.Messages = append(
@@ -102,7 +109,7 @@ func (a *Agent) Run(ctx context.Context, input string, options *RunOptions) (*Ru
 	res := &RunResult{
 		client: &ToolHandler{
 			Client:  client,
-			Toolset: a.Toolsets,
+			Toolset: a.Toolset,
 		},
 		ctx: ctx,
 		req: req,
