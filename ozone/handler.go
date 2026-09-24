@@ -30,9 +30,15 @@ func (m *ToolHandler) Chat(
 			)
 			return nil
 		})
-		if err != nil || len(msg.ToolCalls) == 0 {
+		if err != nil {
 			return err
 		}
+
+		req.Messages = append(req.Messages, msg)
+		if len(msg.ToolCalls) == 0 {
+			return nil
+		}
+
 		for _, tc := range msg.ToolCalls {
 			res, err := m.Call(ctx, tc)
 			if err != nil {
