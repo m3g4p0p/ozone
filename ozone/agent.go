@@ -57,6 +57,7 @@ func (a *Agent) Run(
 		client: handler,
 		ctx:    ctx,
 		req:    req,
+		offset: len(messages),
 	}
 
 	return res, nil
