@@ -27,34 +27,26 @@ func (a *Agent) Run(
 		return nil, err
 	}
 
-	handler := &TurnHandler{
-		Client: client,
+	messages, err := a.resolveSystem(ctx)
+	if err != nil {
+		return nil, err
+	}
+	messages = append(messages, options.History...)
+
+	toolset, err := a.resolveToolset(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	if a.Toolset != nil {
-		toolset, err := a.Toolset.Toolset(ctx)
-		if err != nil {
-			return nil, err
-		}
-		handler.Toolset = toolset
+	handler := &TurnHandler{
+		Client:  client,
+		Toolset: toolset,
 	}
 
 	req := &api.ChatRequest{
-		Model: a.Model,
+		Model:    a.Model,
+		Messages: messages,
 	}
-
-	if a.System != nil {
-		messages, err := a.System.Messages(ctx)
-		if err != nil {
-			return nil, err
-		}
-		req.Messages = append(req.Messages, messages...)
-	}
-
-	req.Messages = append(
-		req.Messages,
-		options.History...,
-	)
 
 	req.Messages = append(req.Messages, api.Message{
 		Role:    "user",
@@ -68,4 +60,18 @@ func (a *Agent) Run(
 	}
 
 	return res, nil
+}
+
+func (a *Agent) resolveSystem(ctx context.Context) ([]api.Message, error) {
+	if a.System == nil {
+		return nil, nil
+	}
+	return a.System.Messages(ctx)
+}
+
+func (a *Agent) resolveToolset(ctx context.Context) (Toolset, error) {
+	if a.Toolset == nil {
+		return nil, nil
+	}
+	return a.Toolset.Toolset(ctx)
 }
