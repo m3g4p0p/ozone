@@ -14,8 +14,7 @@ import (
 
 type Toolset struct {
 	Session *mcp.ClientSession
-
-	closer io.Closer
+	closer  io.Closer
 }
 
 func (ts *Toolset) Tools(ctx context.Context) (api.Tools, error) {

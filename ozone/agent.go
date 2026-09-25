@@ -34,6 +34,13 @@ func (a *Agent) Run(
 		return nil, err
 	}
 
+	// Long-lived resources first to allow shared resource access
+	toolset, err := a.resolveToolset(ctx)
+	if err != nil {
+		return nil, err
+	}
+	cleanup.AddAny(toolset)
+
 	think, err := a.resolveThink(ctx)
 	if err != nil {
 		return nil, err
@@ -48,12 +55,6 @@ func (a *Agent) Run(
 	if err != nil {
 		return nil, err
 	}
-
-	toolset, err := a.resolveToolset(ctx)
-	if err != nil {
-		return nil, err
-	}
-	cleanup.AddAny(toolset)
 
 	handler := &TurnHandler{
 		Client:  client,
