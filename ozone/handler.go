@@ -17,7 +17,7 @@ var (
 
 type TurnHandler struct {
 	Client   Chatter
-	Toolset  Toolset
+	Handler  ToolCallHandler
 	MaxSetps int
 }
 

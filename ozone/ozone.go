@@ -17,9 +17,21 @@ type Chatter interface {
 	Chat(ctx context.Context, req *api.ChatRequest, fn api.ChatResponseFunc) error
 }
 
-type Toolset interface {
+type MessagesProvider interface {
+	Messages(ctx context.Context) ([]api.Message, error)
+}
+
+type ToolsProvider interface {
 	Tools(ctx context.Context) (api.Tools, error)
+}
+
+type ToolCallHandler interface {
 	Call(ctx context.Context, tc api.ToolCall) (string, error)
+}
+
+type Toolset interface {
+	ToolsProvider
+	ToolCallHandler
 }
 
 type RunOptions struct {
@@ -113,7 +125,7 @@ func (a *Agent) Run(
 	res := &RunResult{
 		client: &TurnHandler{
 			Client:  client,
-			Toolset: a.Toolset,
+			Handler: a.Toolset,
 		},
 		ctx: ctx,
 		req: req,
