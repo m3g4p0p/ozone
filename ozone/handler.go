@@ -15,13 +15,13 @@ var (
 	ErrMaxStepsExceeded = errors.New("max steps exceeded")
 )
 
-type ToolHandler struct {
+type TurnHandler struct {
 	Client   Chatter
 	Toolset  Toolset
 	MaxSetps int
 }
 
-func (h *ToolHandler) Chat(
+func (h *TurnHandler) Chat(
 	ctx context.Context,
 	req *api.ChatRequest,
 	fn api.ChatResponseFunc,
@@ -70,7 +70,7 @@ func (h *ToolHandler) Chat(
 	return ErrMaxStepsExceeded
 }
 
-func (h *ToolHandler) Call(ctx context.Context, tc api.ToolCall) (string, error) {
+func (h *TurnHandler) Call(ctx context.Context, tc api.ToolCall) (string, error) {
 	res, err := h.Call(ctx, tc)
 	if errors.Is(err, ErrNotHandled) {
 		return fmt.Sprintf("unkown tool: %s", tc.Function.Name), nil

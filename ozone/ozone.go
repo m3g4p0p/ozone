@@ -67,7 +67,11 @@ type Agent struct {
 	Toolset Toolset
 }
 
-func (a *Agent) Run(ctx context.Context, input string, options *RunOptions) (*RunResult, error) {
+func (a *Agent) Run(
+	ctx context.Context,
+	input string,
+	options *RunOptions,
+) (*RunResult, error) {
 	if options == nil {
 		options = &RunOptions{}
 	}
@@ -107,7 +111,7 @@ func (a *Agent) Run(ctx context.Context, input string, options *RunOptions) (*Ru
 	})
 
 	res := &RunResult{
-		client: &ToolHandler{
+		client: &TurnHandler{
 			Client:  client,
 			Toolset: a.Toolset,
 		},
