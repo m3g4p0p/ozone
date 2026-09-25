@@ -1,6 +1,11 @@
 
 Todo:
   ☐ Messages provider
+  ☐ Toolset provider
   ☐ HTTP Handler
   ☐ Session / state
   ☐ MCP
+  ☐ Close method
+  ☐ (Await) final output
+  ☐ Structured output
+  ☐ Deferred tools
