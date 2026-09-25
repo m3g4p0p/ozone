@@ -26,3 +26,7 @@ type Toolset interface {
 	ToolsProvider
 	ToolCallHandler
 }
+
+type ToolsetProvider interface {
+	Toolset(ctx context.Context) (Toolset, error)
+}

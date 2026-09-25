@@ -37,10 +37,14 @@ func (t *FunctionTool) Call(ctx context.Context, tc api.ToolCall) (string, error
 	return t.Handler(ctx, tc)
 }
 
+func (t *FunctionTool) Toolset(context.Context) (ozone.Toolset, error) {
+	return t, nil
+}
+
 func NewTool[In, Out any](
 	name, description string,
 	handler func(ctx context.Context, input In) (Out, error),
-) (ozone.Toolset, error) {
+) (ozone.ToolsetProvider, error) {
 	schema, err := jsonschema.For[In](nil)
 	if err != nil {
 		return nil, err
@@ -97,7 +101,7 @@ func NewTool[In, Out any](
 func MustNewTool[In, Out any](
 	name, description string,
 	handler func(ctx context.Context, input In) (Out, error),
-) ozone.Toolset {
+) ozone.ToolsetProvider {
 	t, err := NewTool(name, description, handler)
 	if err != nil {
 		panic(err)

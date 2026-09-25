@@ -9,9 +9,23 @@ import (
 	"github.com/ollama/ollama/api"
 )
 
-type Toolsets []ozone.Toolset
+type Toolsets []ozone.ToolsetProvider
 
-func (t Toolsets) Tools(ctx context.Context) (api.Tools, error) {
+func (t Toolsets) Toolset(ctx context.Context) (ozone.Toolset, error) {
+	var toolsets resolvedToolsets
+	for _, provider := range t {
+		t, err := provider.Toolset(ctx)
+		if err != nil {
+			return nil, err
+		}
+		toolsets = append(toolsets, t)
+	}
+	return toolsets, nil
+}
+
+type resolvedToolsets []ozone.Toolset
+
+func (t resolvedToolsets) Tools(ctx context.Context) (api.Tools, error) {
 	var tools api.Tools
 	for _, t := range t {
 		ts, err := t.Tools(ctx)
@@ -23,7 +37,7 @@ func (t Toolsets) Tools(ctx context.Context) (api.Tools, error) {
 	return tools, nil
 }
 
-func (t Toolsets) Call(ctx context.Context, tc api.ToolCall) (string, error) {
+func (t resolvedToolsets) Call(ctx context.Context, tc api.ToolCall) (string, error) {
 	for _, t := range t {
 		res, err := t.Call(ctx, tc)
 		if errors.Is(err, ozone.ErrNotHandled) {

@@ -1,7 +1,8 @@
 
 Todo:
-  ☐ Messages provider
-  ☐ Toolset provider
+  ✔ Messages provider @done(26-09-25 18:27)
+  ✔ Toolset provider @done(26-09-25 18:27)
+  ☐ Context provider
   ☐ HTTP Handler
   ☐ Session / state
   ☐ MCP

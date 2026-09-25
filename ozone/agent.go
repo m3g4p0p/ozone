@@ -9,8 +9,8 @@ import (
 type Agent struct {
 	Name    string
 	Model   string
-	System  string
-	Toolset Toolset
+	System  MessagesProvider
+	Toolset ToolsetProvider
 }
 
 func (a *Agent) Run(
@@ -27,23 +27,28 @@ func (a *Agent) Run(
 		return nil, err
 	}
 
+	handler := &TurnHandler{
+		Client: client,
+	}
+
+	if a.Toolset != nil {
+		toolset, err := a.Toolset.Toolset(ctx)
+		if err != nil {
+			return nil, err
+		}
+		handler.Toolset = toolset
+	}
+
 	req := &api.ChatRequest{
 		Model: a.Model,
 	}
 
-	if a.System != "" {
-		req.Messages = append(req.Messages, api.Message{
-			Role:    "system",
-			Content: a.System,
-		})
-	}
-
-	if a.Toolset != nil {
-		tools, err := a.Toolset.Tools(ctx)
+	if a.System != nil {
+		messages, err := a.System.Messages(ctx)
 		if err != nil {
 			return nil, err
 		}
-		req.Tools = tools
+		req.Messages = append(req.Messages, messages...)
 	}
 
 	req.Messages = append(
@@ -57,12 +62,9 @@ func (a *Agent) Run(
 	})
 
 	res := &RunResult{
-		client: &TurnHandler{
-			Client:  client,
-			Handler: a.Toolset,
-		},
-		ctx: ctx,
-		req: req,
+		client: handler,
+		ctx:    ctx,
+		req:    req,
 	}
 
 	return res, nil

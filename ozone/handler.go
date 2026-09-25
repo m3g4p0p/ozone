@@ -17,7 +17,7 @@ var (
 
 type TurnHandler struct {
 	Client   Chatter
-	Handler  ToolCallHandler
+	Toolset  Toolset
 	MaxSetps int
 }
 
@@ -32,8 +32,14 @@ func (h *TurnHandler) Chat(
 	}
 
 	for range maxSteps {
+		tools, err := h.Tools(ctx)
+		if err != nil {
+			return err
+		}
+		req.Tools = tools
+
 		var msg api.Message
-		err := h.Client.Chat(ctx, req, func(cr api.ChatResponse) error {
+		if err := h.Client.Chat(ctx, req, func(cr api.ChatResponse) error {
 			if err := fn(cr); err != nil {
 				return err
 			}
@@ -44,8 +50,7 @@ func (h *TurnHandler) Chat(
 				cr.Message.ToolCalls...,
 			)
 			return nil
-		})
-		if err != nil {
+		}); err != nil {
 			return err
 		}
 
@@ -70,11 +75,18 @@ func (h *TurnHandler) Chat(
 	return ErrMaxStepsExceeded
 }
 
+func (h *TurnHandler) Tools(ctx context.Context) (api.Tools, error) {
+	if h.Toolset == nil {
+		return nil, nil
+	}
+	return h.Toolset.Tools(ctx)
+}
+
 func (h *TurnHandler) Call(ctx context.Context, tc api.ToolCall) (string, error) {
-	if h.Handler == nil {
+	if h.Toolset == nil {
 		return unkownTool(tc)
 	}
-	res, err := h.Handler.Call(ctx, tc)
+	res, err := h.Toolset.Call(ctx, tc)
 	if errors.Is(err, ErrNotHandled) {
 		return unkownTool(tc)
 	}
