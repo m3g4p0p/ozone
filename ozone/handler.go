@@ -71,9 +71,16 @@ func (h *TurnHandler) Chat(
 }
 
 func (h *TurnHandler) Call(ctx context.Context, tc api.ToolCall) (string, error) {
-	res, err := h.Call(ctx, tc)
+	if h.Handler == nil {
+		return unkownTool(tc)
+	}
+	res, err := h.Handler.Call(ctx, tc)
 	if errors.Is(err, ErrNotHandled) {
-		return fmt.Sprintf("unkown tool: %s", tc.Function.Name), nil
+		return unkownTool(tc)
 	}
 	return res, err
+}
+
+func unkownTool(tc api.ToolCall) (string, error) {
+	return fmt.Sprintf("unkown tool: %s", tc.Function.Name), nil
 }
