@@ -4,6 +4,8 @@ import (
 	"context"
 	"io"
 
+	"m3g4p0p/ozone/internal/cleanup"
+
 	"github.com/ollama/ollama/api"
 )
 
@@ -19,6 +21,9 @@ func (a *Agent) Run(
 	input string,
 	options *RunOptions,
 ) (*RunResult, error) {
+	var cleanup cleanup.Cleanup
+	defer cleanup.Close()
+
 	if options == nil {
 		options = &RunOptions{}
 	}
@@ -38,10 +43,8 @@ func (a *Agent) Run(
 	if err != nil {
 		return nil, err
 	}
-
-	var closer io.Closer
 	if c, ok := toolset.(io.Closer); ok {
-		closer = c
+		cleanup.Add(c)
 	}
 
 	handler := &TurnHandler{
@@ -61,7 +64,7 @@ func (a *Agent) Run(
 
 	res := &RunResult{
 		client: handler,
-		closer: closer,
+		closer: cleanup.Take(),
 		ctx:    ctx,
 		req:    req,
 		offset: len(messages),
