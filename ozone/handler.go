@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 
 	"github.com/ollama/ollama/api"
 )
@@ -29,6 +30,10 @@ func (h *TurnHandler) Chat(
 	maxSteps := h.MaxSetps
 	if maxSteps == 0 {
 		maxSteps = defaultMaxSteps
+	}
+
+	if c, ok := h.Toolset.(io.Closer); ok {
+		defer c.Close()
 	}
 
 	for range maxSteps {

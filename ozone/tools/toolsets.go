@@ -3,6 +3,7 @@ package tools
 import (
 	"context"
 	"errors"
+	"io"
 
 	"m3g4p0p/ozone/ozone"
 
@@ -16,6 +17,7 @@ func (t Toolsets) Toolset(ctx context.Context) (ozone.Toolset, error) {
 	for _, provider := range t {
 		t, err := provider.Toolset(ctx)
 		if err != nil {
+			_ = toolsets.Close()
 			return nil, err
 		}
 		toolsets = append(toolsets, t)
@@ -46,4 +48,14 @@ func (t resolvedToolsets) Call(ctx context.Context, tc api.ToolCall) (string, er
 		return res, err
 	}
 	return "", ozone.ErrNotHandled
+}
+
+func (t resolvedToolsets) Close() error {
+	var errs []error
+	for _, t := range t {
+		if c, ok := t.(io.Closer); ok {
+			errs = append(errs, c.Close())
+		}
+	}
+	return errors.Join(errs...)
 }

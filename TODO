@@ -6,7 +6,9 @@ Todo:
   ☐ HTTP Handler
   ☐ Session / state
   ☐ MCP
-  ☐ Close method
+    ☐ Session cache
+  ✔ Close method @done(26-09-26 14:27)
   ☐ (Await) final output
   ☐ Structured output
   ☐ Deferred tools
+  ☐ Static toolset helper
