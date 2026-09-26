@@ -19,6 +19,12 @@ func (c *Cleanup) Add(closer io.Closer) {
 	*c = append(*c, closer)
 }
 
+func (c *Cleanup) AddAny(v any) {
+	if closer, ok := v.(io.Closer); ok {
+		*c = append(*c, closer)
+	}
+}
+
 func (c *Cleanup) Take() io.Closer {
 	closer := *c
 	*c = nil

@@ -2,7 +2,6 @@ package ozone
 
 import (
 	"context"
-	"io"
 
 	"m3g4p0p/ozone/internal/cleanup"
 
@@ -43,9 +42,7 @@ func (a *Agent) Run(
 	if err != nil {
 		return nil, err
 	}
-	if c, ok := toolset.(io.Closer); ok {
-		cleanup.Add(c)
-	}
+	cleanup.AddAny(toolset)
 
 	handler := &TurnHandler{
 		Client:  client,
