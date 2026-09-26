@@ -2,6 +2,7 @@ package ozone
 
 import (
 	"context"
+	"slices"
 
 	"m3g4p0p/ozone/internal/cleanup"
 
@@ -32,11 +33,15 @@ func (a *Agent) Run(
 		return nil, err
 	}
 
-	messages, err := a.resolveSystem(ctx)
+	system, err := a.resolveSystem(ctx)
 	if err != nil {
 		return nil, err
 	}
-	messages = append(messages, options.History...)
+
+	history, err := options.resolveHistory(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	toolset, err := a.resolveToolset(ctx)
 	if err != nil {
@@ -48,6 +53,8 @@ func (a *Agent) Run(
 		Client:  client,
 		Toolset: toolset,
 	}
+
+	messages := slices.Concat(system, history)
 
 	req := &api.ChatRequest{
 		Model:    a.Model,
