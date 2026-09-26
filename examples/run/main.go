@@ -43,6 +43,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	defer res.Close()
 
 	for cr, err := range res.Stream() {
 		if err != nil {

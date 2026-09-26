@@ -3,6 +3,7 @@ package ozone
 import (
 	"context"
 	"errors"
+	"io"
 	"iter"
 	"sync/atomic"
 
@@ -18,6 +19,7 @@ var (
 
 type RunResult struct {
 	client   Chatter
+	closer   io.Closer
 	ctx      context.Context
 	req      *api.ChatRequest
 	started  atomic.Bool
@@ -55,4 +57,11 @@ func (r *RunResult) NewMessages() ([]api.Message, error) {
 		return nil, r.err
 	}
 	return r.req.Messages[r.offset:], nil
+}
+
+func (r *RunResult) Close() error {
+	if r.closer == nil {
+		return nil
+	}
+	return r.closer.Close()
 }

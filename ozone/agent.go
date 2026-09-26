@@ -2,6 +2,7 @@ package ozone
 
 import (
 	"context"
+	"io"
 
 	"github.com/ollama/ollama/api"
 )
@@ -38,6 +39,11 @@ func (a *Agent) Run(
 		return nil, err
 	}
 
+	var closer io.Closer
+	if c, ok := toolset.(io.Closer); ok {
+		closer = c
+	}
+
 	handler := &TurnHandler{
 		Client:  client,
 		Toolset: toolset,
@@ -55,6 +61,7 @@ func (a *Agent) Run(
 
 	res := &RunResult{
 		client: handler,
+		closer: closer,
 		ctx:    ctx,
 		req:    req,
 		offset: len(messages),

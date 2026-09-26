@@ -8,6 +8,7 @@ Todo:
   ☐ MCP
     ☐ Session cache
   ✔ Close method @done(26-09-26 14:27)
+  ☐ Cleanup (RAII)
   ☐ (Await) final output
   ☐ Structured output
   ☐ Deferred tools
