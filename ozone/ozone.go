@@ -30,3 +30,7 @@ type Toolset interface {
 type ToolsetProvider interface {
 	Toolset(ctx context.Context) (Toolset, error)
 }
+
+type ThinkValueProvider interface {
+	ThinkValue(ctx context.Context) (*api.ThinkValue, error)
+}

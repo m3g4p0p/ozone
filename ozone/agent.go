@@ -12,6 +12,7 @@ import (
 type Agent struct {
 	Name    string
 	Model   string
+	Think   ThinkValueProvider
 	System  MessagesProvider
 	Toolset ToolsetProvider
 }
@@ -29,6 +30,11 @@ func (a *Agent) Run(
 	}
 
 	client, err := options.resolveClient()
+	if err != nil {
+		return nil, err
+	}
+
+	think, err := a.resolveThink(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -56,6 +62,7 @@ func (a *Agent) Run(
 
 	req := &api.ChatRequest{
 		Model:    a.Model,
+		Think:    think,
 		Messages: slices.Concat(system, messages),
 	}
 
@@ -69,6 +76,13 @@ func (a *Agent) Run(
 	}
 
 	return res, nil
+}
+
+func (a *Agent) resolveThink(ctx context.Context) (*api.ThinkValue, error) {
+	if a.Think == nil {
+		return nil, nil
+	}
+	return a.Think.ThinkValue(ctx)
 }
 
 func (a *Agent) resolveSystem(ctx context.Context) ([]api.Message, error) {
