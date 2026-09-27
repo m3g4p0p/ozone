@@ -67,11 +67,13 @@ func (a *Agent) Run(
 	})
 
 	res := &RunResult{
-		client: handler,
-		closer: cleanup.Take(),
-		ctx:    ctx,
-		req:    req,
-		offset: len(messages),
+		client:    handler,
+		closer:    cleanup.Take(),
+		ctx:       ctx,
+		req:       req,
+		finished:  make(chan struct{}),
+		chatStart: len(system),
+		turnStart: len(messages),
 	}
 
 	return res, nil

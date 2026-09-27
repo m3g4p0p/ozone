@@ -18,14 +18,17 @@ var (
 )
 
 type RunResult struct {
-	client   Chatter
-	closer   io.Closer
-	ctx      context.Context
-	req      *api.ChatRequest
+	client Chatter
+	closer io.Closer
+	ctx    context.Context
+	req    *api.ChatRequest
+	err    error
+
 	started  atomic.Bool
-	finished atomic.Bool
-	offset   int
-	err      error
+	finished chan struct{}
+
+	chatStart int
+	turnStart int
 }
 
 func (r *RunResult) Stream() iter.Seq2[api.ChatResponse, error] {
@@ -34,7 +37,7 @@ func (r *RunResult) Stream() iter.Seq2[api.ChatResponse, error] {
 			yield(api.ChatResponse{}, ErrStarted)
 			return
 		}
-		defer r.finished.Store(true)
+		defer close(r.finished)
 
 		err := r.client.Chat(r.ctx, r.req, func(cr api.ChatResponse) error {
 			if !yield(cr, nil) {
@@ -50,13 +53,27 @@ func (r *RunResult) Stream() iter.Seq2[api.ChatResponse, error] {
 }
 
 func (r *RunResult) NewMessages() ([]api.Message, error) {
-	if !r.finished.Load() {
+	select {
+	default:
 		return nil, ErrNotFinished
+	case <-r.finished:
 	}
 	if r.err != nil {
 		return nil, r.err
 	}
-	return r.req.Messages[r.offset:], nil
+	return r.req.Messages[r.turnStart:], nil
+}
+
+func (r *RunResult) Messages(ctx context.Context) ([]api.Message, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case <-r.finished:
+	}
+	if r.err != nil {
+		return nil, r.err
+	}
+	return r.req.Messages[r.chatStart:], nil
 }
 
 func (r *RunResult) Close() error {
