@@ -11,17 +11,23 @@ import (
 type User string
 
 func (u User) Messages(context.Context) ([]api.Message, error) {
-	return static("user", string(u))
+	return createMessage("user", string(u))
 }
 
 type System string
 
 func (s System) Messages(context.Context) ([]api.Message, error) {
-	return static("system", string(s))
+	return createMessage("system", string(s))
 }
 
-func static(role, content string) ([]api.Message, error) {
+func createMessage(role, content string) ([]api.Message, error) {
 	return []api.Message{{Role: role, Content: content}}, nil
+}
+
+type Static []api.Message
+
+func (s Static) Messages(context.Context) ([]api.Message, error) {
+	return s, nil
 }
 
 type Messages []ozone.MessagesProvider
