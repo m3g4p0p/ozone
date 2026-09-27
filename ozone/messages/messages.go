@@ -24,15 +24,23 @@ func createMessage(role, content string) ([]api.Message, error) {
 	return []api.Message{{Role: role, Content: content}}, nil
 }
 
-type Static []api.Message
+func Static(m ...api.Message) ozone.MessagesProvider {
+	return staticMessages(m)
+}
 
-func (s Static) Messages(context.Context) ([]api.Message, error) {
+type staticMessages []api.Message
+
+func (s staticMessages) Messages(context.Context) ([]api.Message, error) {
 	return s, nil
 }
 
-type Messages []ozone.MessagesProvider
+func Messages(mp ...ozone.MessagesProvider) ozone.MessagesProvider {
+	return messageProviders(mp)
+}
 
-func (m Messages) Messages(ctx context.Context) ([]api.Message, error) {
+type messageProviders []ozone.MessagesProvider
+
+func (m messageProviders) Messages(ctx context.Context) ([]api.Message, error) {
 	var messages []api.Message
 	for _, provider := range m {
 		m, err := provider.Messages(ctx)
