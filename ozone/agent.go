@@ -18,7 +18,7 @@ type Agent struct {
 
 func (a *Agent) Run(
 	ctx context.Context,
-	input string,
+	input MessagesProvider,
 	options *RunOptions,
 ) (*RunResult, error) {
 	var cleanup cleanup.Cleanup
@@ -38,7 +38,7 @@ func (a *Agent) Run(
 		return nil, err
 	}
 
-	history, err := options.resolveHistory(ctx)
+	messages, err := input.Messages(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -54,26 +54,18 @@ func (a *Agent) Run(
 		Toolset: toolset,
 	}
 
-	messages := slices.Concat(system, history)
-
 	req := &api.ChatRequest{
 		Model:    a.Model,
-		Messages: messages,
+		Messages: slices.Concat(system, messages),
 	}
 
-	req.Messages = append(req.Messages, api.Message{
-		Role:    "user",
-		Content: input,
-	})
-
 	res := &RunResult{
-		client:    handler,
-		closer:    cleanup.Take(),
-		ctx:       ctx,
-		req:       req,
-		finished:  make(chan struct{}),
-		chatStart: len(system),
-		turnStart: len(messages),
+		client:   handler,
+		closer:   cleanup.Take(),
+		ctx:      ctx,
+		req:      req,
+		offset:   len(system),
+		finished: make(chan struct{}),
 	}
 
 	return res, nil

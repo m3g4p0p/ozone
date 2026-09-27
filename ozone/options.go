@@ -1,14 +1,11 @@
 package ozone
 
 import (
-	"context"
-
 	"github.com/ollama/ollama/api"
 )
 
 type RunOptions struct {
-	Client  Chatter
-	History MessagesProvider
+	Client Chatter
 }
 
 func (r *RunOptions) resolveClient() (Chatter, error) {
@@ -16,11 +13,4 @@ func (r *RunOptions) resolveClient() (Chatter, error) {
 		return r.Client, nil
 	}
 	return api.ClientFromEnvironment()
-}
-
-func (r *RunOptions) resolveHistory(ctx context.Context) ([]api.Message, error) {
-	if r.History == nil {
-		return nil, nil
-	}
-	return r.History.Messages(ctx)
 }

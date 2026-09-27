@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"m3g4p0p/ozone/ozone"
+	"m3g4p0p/ozone/ozone/messages"
 	"m3g4p0p/ozone/ozone/tools"
 )
 
@@ -39,7 +40,7 @@ func run() error {
 		Toolset: tools.Toolsets{tool},
 	}
 
-	res, err := agent.Run(ctx, flag.Arg(0), nil)
+	res, err := agent.Run(ctx, messages.User(flag.Arg(0)), nil)
 	if err != nil {
 		return err
 	}

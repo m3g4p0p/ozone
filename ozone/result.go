@@ -12,23 +12,18 @@ import (
 
 var errStop = errors.New("stop")
 
-var (
-	ErrStarted     = errors.New("stream already started")
-	ErrNotFinished = errors.New("run not finished")
-)
+var ErrStarted = errors.New("stream already started")
 
 type RunResult struct {
 	client Chatter
 	closer io.Closer
 	ctx    context.Context
 	req    *api.ChatRequest
+	offset int
 	err    error
 
 	started  atomic.Bool
 	finished chan struct{}
-
-	chatStart int
-	turnStart int
 }
 
 func (r *RunResult) Stream() iter.Seq2[api.ChatResponse, error] {
@@ -52,18 +47,6 @@ func (r *RunResult) Stream() iter.Seq2[api.ChatResponse, error] {
 	}
 }
 
-func (r *RunResult) NewMessages() ([]api.Message, error) {
-	select {
-	default:
-		return nil, ErrNotFinished
-	case <-r.finished:
-	}
-	if r.err != nil {
-		return nil, r.err
-	}
-	return r.req.Messages[r.turnStart:], nil
-}
-
 func (r *RunResult) Messages(ctx context.Context) ([]api.Message, error) {
 	select {
 	case <-ctx.Done():
@@ -73,7 +56,7 @@ func (r *RunResult) Messages(ctx context.Context) ([]api.Message, error) {
 	if r.err != nil {
 		return nil, r.err
 	}
-	return r.req.Messages[r.chatStart:], nil
+	return r.req.Messages[r.offset:], nil
 }
 
 func (r *RunResult) Close() error {
