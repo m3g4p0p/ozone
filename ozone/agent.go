@@ -4,7 +4,7 @@ import (
 	"context"
 	"slices"
 
-	"m3g4p0p/ozone/internal/cleanup"
+	"m3g4p0p/ozone/internal/resources"
 
 	"github.com/ollama/ollama/api"
 )
@@ -22,7 +22,7 @@ func (a *Agent) Run(
 	input MessagesProvider,
 	options *RunOptions,
 ) (*RunResult, error) {
-	var cleanup cleanup.Cleanup
+	var cleanup resources.Cleanup
 	defer cleanup.Close()
 
 	if options == nil {
