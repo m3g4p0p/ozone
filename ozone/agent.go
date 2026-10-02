@@ -4,6 +4,7 @@ import (
 	"context"
 	"slices"
 
+	"m3g4p0p/ozone/internal/ctxval"
 	"m3g4p0p/ozone/internal/resources"
 
 	"github.com/ollama/ollama/api"
@@ -70,7 +71,7 @@ func (a *Agent) Run(
 	res := &RunResult{
 		client:   handler,
 		closer:   cleanup.Take(),
-		ctx:      ctx,
+		ctx:      ctxval.With(ctx, req),
 		req:      req,
 		offset:   len(system),
 		finished: make(chan struct{}),
