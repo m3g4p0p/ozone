@@ -118,5 +118,5 @@ func convert(src, dest any) error {
 }
 
 func toolCallError(name string, err error) string {
-	return fmt.Sprintf("error calling %s: %v", name, err)
+	return fmt.Sprintf("Error calling %s: %v", name, err)
 }

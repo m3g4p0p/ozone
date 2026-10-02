@@ -5,8 +5,8 @@ Todo:
   ☐ Context provider
   ☐ HTTP Handler
   ☐ Session / state
-  ☐ MCP
-    ☐ Session cache
+  ✔ MCP @done(26-10-02 19:49)
+    ✔ Session cache @done(26-10-02 19:49)
   ✔ Close method @done(26-09-26 14:27)
   ✔ Cleanup (RAII) @done(26-09-26 15:09)
   ☐ (Await) final output
@@ -15,3 +15,8 @@ Todo:
   ✔ Static toolset helper @done(26-09-26 16:47)
   ☐ Tool approval
   ☐ Consistent cleanup
+  ☐ Stearing
+  ☐ Logging
+  ☐ Events
+  ☐ Transport / binder
+  ☐ Validation error

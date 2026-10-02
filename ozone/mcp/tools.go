@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"encoding/json/v2"
+	"fmt"
 	"io"
 	"strings"
 
@@ -62,9 +63,12 @@ func (ts *Toolset) Call(ctx context.Context, tc api.ToolCall) (string, error) {
 
 	var s strings.Builder
 	if res.IsError {
-		s.WriteString("Error: ")
+		fmt.Fprintf(&s, "Error calling %s: ", tc.Function.Name)
 	}
-	for _, c := range res.Content {
+	for i, c := range res.Content {
+		if i > 0 {
+			fmt.Fprintln(&s)
+		}
 		if tc, ok := c.(*mcp.TextContent); ok {
 			s.WriteString(tc.Text)
 		}
