@@ -68,6 +68,7 @@ func (h *TurnHandler) Chat(
 				Role:       "tool",
 				Content:    res,
 				ToolCallID: tc.ID,
+				ToolName:   tc.Function.Name,
 			})
 		}
 	}

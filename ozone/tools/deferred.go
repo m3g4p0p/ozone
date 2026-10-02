@@ -3,7 +3,9 @@ package tools
 import (
 	"context"
 	"fmt"
+	"sync"
 
+	"m3g4p0p/ozone/internal/ctxval"
 	"m3g4p0p/ozone/ozone"
 
 	"github.com/ollama/ollama/api"
@@ -32,12 +34,16 @@ type deferredToolset struct {
 	description string
 	enabled     bool
 	toolset     ozone.Toolset
+	once        sync.Once
 }
 
 func (dt *deferredToolset) Tools(ctx context.Context) (api.Tools, error) {
+	dt.initialize(ctx)
+
 	if dt.enabled {
 		return dt.toolset.Tools(ctx)
 	}
+
 	return api.Tools{{
 		Type: "function",
 		Function: api.ToolFunction{
@@ -59,4 +65,20 @@ func (dt *deferredToolset) Call(ctx context.Context, tc api.ToolCall) (string, e
 	}
 	dt.enabled = true
 	return "toolset activated", nil
+}
+
+func (dt *deferredToolset) initialize(ctx context.Context) {
+	dt.once.Do(func() {
+		req, ok := ctxval.From[*api.ChatRequest](ctx)
+		if !ok {
+			return
+		}
+
+		for _, m := range req.Messages {
+			if m.Role == "tool" && m.ToolName == dt.name {
+				dt.enabled = true
+				return
+			}
+		}
+	})
 }
