@@ -26,7 +26,7 @@ func (s *Shared[T]) Acquire(factory func() (T, error)) (*Lease[T], error) {
 	s.refcount++
 
 	return &Lease[T]{
-		Resource: s.resource,
+		resource: s.resource,
 		release:  s.onceReleaser(),
 	}, nil
 }
@@ -36,7 +36,7 @@ func (s *Shared[T]) release() error {
 	defer s.mu.Unlock()
 
 	if s.refcount == 0 {
-		panic("resources.Shared: no resource acquired")
+		panic("no resource acquired")
 	}
 
 	s.refcount--
@@ -68,8 +68,12 @@ func (s *Shared[T]) onceReleaser() func() error {
 }
 
 type Lease[T any] struct {
-	Resource T
+	resource T
 	release  func() error
+}
+
+func (l *Lease[T]) Resource() T {
+	return l.resource
 }
 
 func (l *Lease[T]) Close() error {

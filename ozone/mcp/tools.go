@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"encoding/json/v2"
+	"io"
 	"strings"
 
 	"m3g4p0p/ozone/ozone"
@@ -13,7 +14,8 @@ import (
 
 type Toolset struct {
 	Session *mcp.ClientSession
-	cleanup bool
+
+	closer io.Closer
 }
 
 func (ts *Toolset) Tools(ctx context.Context) (api.Tools, error) {
@@ -79,10 +81,10 @@ func (ts *Toolset) Toolset(context.Context) (ozone.Toolset, error) {
 }
 
 func (ts *Toolset) Close() error {
-	if !ts.cleanup {
+	if ts.closer == nil {
 		return nil
 	}
-	return ts.Session.Close()
+	return ts.closer.Close()
 }
 
 func (ts *Toolset) validateTool(ctx context.Context, name string) error {
