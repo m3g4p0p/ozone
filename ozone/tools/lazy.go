@@ -9,12 +9,10 @@ import (
 	"github.com/ollama/ollama/api"
 )
 
-type Lazy struct {
-	Provider ozone.ToolsetProvider
-}
-
-func (l *Lazy) Toolset(context.Context) (ozone.Toolset, error) {
-	return &lazyToolset{provider: l.Provider}, nil
+func Lazy(provider ozone.ToolsetProvider) ozone.ToolsetProvider {
+	return ToolsetProviderFunc(func(ctx context.Context) (ozone.Toolset, error) {
+		return &lazyToolset{provider: provider}, nil
+	})
 }
 
 type lazyToolset struct {
