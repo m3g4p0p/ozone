@@ -55,6 +55,7 @@ func run() error {
 			Name:        "activate_file_tools",
 			Description: "enabled access to list_dir and read_file",
 			Provider:    tools.Toolsets{listDir, readFile},
+			Enabled:     tools.HasActivateMessage,
 		},
 	}
 

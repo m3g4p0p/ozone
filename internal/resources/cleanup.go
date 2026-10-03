@@ -12,7 +12,7 @@ func (c Cleanup) Close() error {
 	for _, c := range c {
 		errs = append(errs, c.Close())
 	}
-	return errors.Join()
+	return errors.Join(errs...)
 }
 
 func (c *Cleanup) Add(closer io.Closer) {

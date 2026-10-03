@@ -11,10 +11,13 @@ import (
 	"github.com/ollama/ollama/api"
 )
 
+type EnabledFunc func(ctx context.Context, name string) bool
+
 type Deferred struct {
 	Name        string
 	Description string
 	Provider    ozone.ToolsetProvider
+	Enabled     EnabledFunc
 }
 
 func (d *Deferred) Toolset(ctx context.Context) (ozone.Toolset, error) {
@@ -25,6 +28,7 @@ func (d *Deferred) Toolset(ctx context.Context) (ozone.Toolset, error) {
 	return &deferredToolset{
 		name:        d.Name,
 		description: d.Description,
+		enabledFunc: d.Enabled,
 		toolset:     t,
 	}, nil
 }
@@ -32,18 +36,19 @@ func (d *Deferred) Toolset(ctx context.Context) (ozone.Toolset, error) {
 type deferredToolset struct {
 	name        string
 	description string
-	enabled     bool
 	toolset     ozone.Toolset
+	enabledFunc EnabledFunc
 	once        sync.Once
+	enabled     bool
 }
 
 func (dt *deferredToolset) Tools(ctx context.Context) (api.Tools, error) {
-	dt.initialize(ctx)
-
+	dt.once.Do(func() {
+		dt.initialize(ctx)
+	})
 	if dt.enabled {
 		return dt.toolset.Tools(ctx)
 	}
-
 	return api.Tools{{
 		Type: "function",
 		Function: api.ToolFunction{
@@ -68,17 +73,22 @@ func (dt *deferredToolset) Call(ctx context.Context, tc api.ToolCall) (string, e
 }
 
 func (dt *deferredToolset) initialize(ctx context.Context) {
-	dt.once.Do(func() {
-		req, ok := ctxval.From[*api.ChatRequest](ctx)
-		if !ok {
-			return
-		}
+	if dt.enabledFunc != nil {
+		dt.enabled = dt.enabledFunc(ctx, dt.name)
+	}
+}
 
-		for _, m := range req.Messages {
-			if m.Role == "tool" && m.ToolName == dt.name {
-				dt.enabled = true
-				return
-			}
+func HasActivateMessage(ctx context.Context, name string) bool {
+	req, ok := ctxval.From[*api.ChatRequest](ctx)
+	if !ok {
+		return false
+	}
+
+	for _, m := range req.Messages {
+		if m.Role == "tool" && m.ToolName == name {
+			return true
 		}
-	})
+	}
+
+	return false
 }

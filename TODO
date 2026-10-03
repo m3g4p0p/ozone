@@ -11,13 +11,14 @@ Todo:
   ✔ Cleanup (RAII) @done(26-09-26 15:09)
   ☐ (Await) final output
   ☐ Structured output
-  ☐ Deferred tools
+  ✔ Deferred tools @done(26-10-03 11:32)
   ✔ Static toolset helper @done(26-09-26 16:47)
   ☐ Tool approval
-  ☐ Consistent cleanup
+  ✘ Consistent cleanup @cancelled(26-10-03 11:33)
   ☐ Stearing
   ☐ Logging
   ☐ Events
   ☐ Transport / binder
   ☐ Validation error
   ☐ Shared resource keepalive
+  ☐ Lazy initialization
