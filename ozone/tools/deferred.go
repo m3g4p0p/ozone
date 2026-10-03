@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"m3g4p0p/ozone/internal/ctxval"
+	"m3g4p0p/ozone/internal/resources"
 	"m3g4p0p/ozone/ozone"
 
 	"github.com/ollama/ollama/api"
@@ -70,6 +71,10 @@ func (dt *deferredToolset) Call(ctx context.Context, tc api.ToolCall) (string, e
 	}
 	dt.enabled = true
 	return "toolset activated", nil
+}
+
+func (dt *deferredToolset) Close() error {
+	return resources.CloseAny(dt.toolset)
 }
 
 func (dt *deferredToolset) initialize(ctx context.Context) {

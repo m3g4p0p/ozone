@@ -3,6 +3,7 @@ package tools
 import (
 	"context"
 
+	"m3g4p0p/ozone/internal/resources"
 	"m3g4p0p/ozone/ozone"
 
 	"github.com/ollama/ollama/api"
@@ -30,4 +31,8 @@ func (lt *lazyToolset) Tools(ctx context.Context) (api.Tools, error) {
 		lt.Toolset = t
 	}
 	return lt.Toolset.Tools(ctx)
+}
+
+func (lt *lazyToolset) Close() error {
+	return resources.CloseAny(lt.Toolset)
 }

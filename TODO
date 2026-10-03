@@ -21,4 +21,4 @@ Todo:
   ☐ Transport / binder
   ☐ Validation error
   ☐ Shared resource keepalive
-  ☐ Lazy initialization
+  ✔ Lazy initialization @done(26-10-03 16:46)
