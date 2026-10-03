@@ -3,27 +3,17 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
-	"os"
-	"os/signal"
-	"syscall"
 
+	"m3g4p0p/ozone/examples/util"
 	"m3g4p0p/ozone/ozone"
 	ozonemcp "m3g4p0p/ozone/ozone/mcp"
-	"m3g4p0p/ozone/ozone/messages"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
 func run() error {
-	ctx, stop := signal.NotifyContext(
-		context.Background(),
-		os.Interrupt,
-		syscall.SIGTERM,
-	)
-	defer stop()
-
+	ctx := context.Background()
 	t1, t2 := mcp.NewInMemoryTransports()
 	srv := mcp.NewServer(&mcp.Implementation{}, nil)
 
@@ -74,22 +64,7 @@ func run() error {
 		System:  mcpProvider.Prompt("weather_expert"),
 	}
 
-	res, err := agent.Run(ctx, messages.User(flag.Arg(0)), nil)
-	if err != nil {
-		return err
-	}
-	defer res.Close()
-
-	for cr, err := range res.Stream() {
-		if err != nil {
-			return err
-		}
-		fmt.Print(cr.Message.Thinking + cr.Message.Content)
-		if cr.Done {
-			fmt.Println()
-		}
-	}
-	return nil
+	return util.RunSingle(ctx, agent, flag.Arg(0))
 }
 
 func main() {

@@ -13,15 +13,23 @@ import (
 )
 
 type llmError struct {
-	message string
+	err error
 }
 
 func (e *llmError) Error() string {
-	return e.message
+	return e.err.Error()
 }
 
-func LLMError(message string) error {
-	return &llmError{message: message}
+func (e *llmError) Unwrap() error {
+	return e.err
+}
+
+func LLMError(err error) error {
+	return &llmError{err: err}
+}
+
+func LLMErrorFormat(f string, args ...any) error {
+	return &llmError{err: fmt.Errorf(f, args...)}
 }
 
 type FunctionTool struct {

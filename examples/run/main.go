@@ -3,14 +3,10 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
-	"os"
-	"os/signal"
-	"syscall"
 
+	"m3g4p0p/ozone/examples/util"
 	"m3g4p0p/ozone/ozone"
-	"m3g4p0p/ozone/ozone/messages"
 	"m3g4p0p/ozone/ozone/tools"
 )
 
@@ -19,13 +15,6 @@ type GetWeatherParams struct {
 }
 
 func run() error {
-	ctx, stop := signal.NotifyContext(
-		context.Background(),
-		os.Interrupt,
-		syscall.SIGTERM,
-	)
-	defer stop()
-
 	tool := tools.MustNewTool(
 		"get_weather",
 		"get the weather for the provided location",
@@ -40,22 +29,11 @@ func run() error {
 		Toolset: tools.Toolsets{tool},
 	}
 
-	res, err := agent.Run(ctx, messages.User(flag.Arg(0)), nil)
-	if err != nil {
-		return err
-	}
-	defer res.Close()
-
-	for cr, err := range res.Stream() {
-		if err != nil {
-			return err
-		}
-		fmt.Print(cr.Message.Thinking + cr.Message.Content)
-		if cr.Done {
-			fmt.Println()
-		}
-	}
-	return nil
+	return util.RunSingle(
+		context.Background(),
+		agent,
+		flag.Arg(0),
+	)
 }
 
 func main() {
